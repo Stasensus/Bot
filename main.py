@@ -38,3 +38,6 @@ for event in long_poll.listen():
             send_msg(event.user_id, 'И вам не хворать!')
         else:
             send_msg(event.user_id, 'Нипанятна!')
+
+            pass
+
