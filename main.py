@@ -39,5 +39,5 @@ for event in long_poll.listen():
         else:
             send_msg(event.user_id, 'Нипанятна!')
 
-            pass
+
 
