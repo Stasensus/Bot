@@ -5,6 +5,7 @@ if __name__ == '__main__':
     server = Bot(TOKEN)
     COMMANDS = {
         'начать': server.greeting,
+        'начать игру': server.prestart,
         "правила": server.rules,
         'игра': server.prestart,
         '2': server.command_amount,
@@ -15,7 +16,13 @@ if __name__ == '__main__':
         '100': server.set_victory_score,
         'да': server.set_penalty,
         'нет': server.set_penalty,
-
+        '60': server.set_explain_time,
+        '90': server.set_explain_time,
+        '120': server.set_explain_time,
+        'просто': server.create_dict,
+        'средне': server.create_dict,
+        'сложно': server.create_dict,
 
     }
     server.start(COMMANDS)
+
