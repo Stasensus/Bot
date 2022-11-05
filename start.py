@@ -19,10 +19,13 @@ if __name__ == '__main__':
         '60': server.set_explain_time,
         '90': server.set_explain_time,
         '120': server.set_explain_time,
-        'просто': server.create_dict,
-        'средне': server.create_dict,
-        'сложно': server.create_dict,
+        'простой': server.create_dict,
+        'средний': server.create_dict,
+        'сложный': server.create_dict,
+        'английский': server.create_dict,
+        'command': 'start'
 
     }
     server.start(COMMANDS)
+
 
