@@ -16,13 +16,16 @@ if __name__ == '__main__':
         '100': server.set_victory_score,
         'да': server.set_penalty,
         'нет': server.set_penalty,
-        '60': server.set_explain_time,
+        '10': server.set_explain_time,
         '90': server.set_explain_time,
         '120': server.set_explain_time,
         'простой': server.create_dict,
         'средний': server.create_dict,
         'сложный': server.create_dict,
         'английский': server.create_dict,
+        'начать объяснение!': server.TheGame.word_demonstration,
+        'следующее слово': server.TheGame.word_demonstration,
+        'пропустить слово': server.TheGame.word_demonstration,
         'command': 'start'
 
     }

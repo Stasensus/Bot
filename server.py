@@ -1,13 +1,17 @@
 import random
+import time
 
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
+from PIL import Image, ImageDraw, ImageFont
+
 FILE1 = r'C:\Users\USER\PycharmProjects\Bot\easy.txt'
-FILE2 = r'C:\Users\USER\PycharmProjects\Bot\dict1.txt'
-FILE3 = r'C:\Users\USER\PycharmProjects\Bot\dict1.txt'
+FILE2 = r'C:\Users\USER\PycharmProjects\Bot\moderate.txt'
+FILE3 = r'C:\Users\USER\PycharmProjects\Bot\hard.txt'
 FILE4 = r'C:\Users\USER\PycharmProjects\Bot\english.txt'
+WORD = r'C:\Users\USER\PycharmProjects\Bot\result.png'
 class BaseBot:
     def __init__(self, token: str):
         self._vk = vk_api.VkApi(token=token)
@@ -36,7 +40,8 @@ class BaseBot:
             data = {
                 'user_id': id,
                 'message': message,
-                'random_id': random.randint(1, 1000)
+                'random_id': random.randint(1, 1000),
+
             }
             self._vk.method('messages.send', data)
         elif keyboard:
@@ -47,6 +52,28 @@ class BaseBot:
                 'keyboard': keyboard.get_keyboard()
             }
             self._vk.method('messages.send', data)
+
+    def _send_image(self, id: int, message: str, attachment, keyboard: VkKeyboard = None):
+        if not keyboard:
+            data = {
+                'user_id': id,
+                'message': message,
+                'attachment': attachment,
+                'random_id': random.randint(1, 1000),
+
+            }
+            self._vk.method('messages.send', data)
+        elif keyboard:
+            data = {
+                'user_id': id,
+                'message': message,
+                'attachment': attachment,
+                'random_id': random.randint(1, 1000),
+                'keyboard': keyboard.get_keyboard()
+            }
+            self._vk.method('messages.send', data)
+
+
 
     def send_empty_keyboard(self, event, message_txt):
         keyboard = VkKeyboard()
@@ -59,9 +86,10 @@ class BaseBot:
 
     def command_name(self, event):
         pass
-    
+
 class Bot(BaseBot):
     users = {}
+    commands_score = {}
     def __init__(self, *args, **kwargs):
         self.TheGame = TheGame(self)
         super().__init__(*args, **kwargs)
@@ -115,6 +143,8 @@ class Bot(BaseBot):
                     self._send_msg(user_id,
                                 f"Введите название команды №{len(self.users.get(user_id)['command_name']) + 1}: ")
                 else:
+                    for i in self.users[user_id]['command_name']:
+                        self.commands_score[i] = 0
                     self.victory_score(event)
         else:
             self._send_msg(user_id, 'Ваш ответ не распознан')
@@ -163,7 +193,7 @@ class Bot(BaseBot):
     def explain_time(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
-        keyboard.add_button(label='60', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='10', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button(label='90', color=VkKeyboardColor.PRIMARY)
         keyboard.add_line()
@@ -172,7 +202,7 @@ class Bot(BaseBot):
                        'Сколько времени даём на объяснение?', keyboard)
     def set_explain_time(self, event):
         user_id = event.user_id
-        if event.text.lower() == '60':
+        if event.text.lower() == '10':
             self.users[user_id]['explain_time'] = int(event.text)
             self.choose_dict(event)
         elif event.text.lower() == '90':
@@ -201,19 +231,19 @@ class Bot(BaseBot):
         user_id = event.user_id
         if event.text.lower() == 'простой':
             self.users = Dictionaries(event, self.users).create_easy_dict()
-            self.TheGame.game_starter(event)
+            self.TheGame.game_starter(event,)
 
         elif event.text.lower() == 'средний':
             self.users = Dictionaries(event, self.users).create_moderate_dict()
-            self.TheGame.game_starter(event)
+            self.TheGame.game_starter(event,)
 
         elif event.text.lower() == 'сложный':
             self.users = Dictionaries(event, self.users).create_hard_dict()
-            self.TheGame.game_starter(event)
+            self.TheGame.game_starter(event,)
 
         elif event.text.lower() == 'английский':
             self.users = Dictionaries(event, self.users).create_english_dict()
-            self.TheGame.game_starter(event)
+            self.TheGame.game_starter(event,)
 
         print(self.users)
 
@@ -228,6 +258,7 @@ class Dictionaries():
             easy = f.readlines()
             easy = [line.rstrip('\n') for line in easy]
             self.users[self.user_id]['dictionary'] = easy
+            random.shuffle(self.users[self.user_id]['dictionary'])
 
             return self.users
 
@@ -256,15 +287,105 @@ class Dictionaries():
 class TheGame:
     def __init__(self, bot):
         self.bot = bot
+        self.commands_counter = 0
+
 
 
     def game_starter(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
         keyboard.add_button(label='Начать объяснение!', color=VkKeyboardColor.POSITIVE)
+        self.zero_counter(event)
+        self.active_command = self.bot.users[user_id]['command_name'][self.commands_counter]
         self.bot._send_msg(user_id,
-                       f"Начинает команда {self.bot.users[user_id]['command_name'][0]}", keyboard)
+                       f"Объясняет команда {self.active_command}", keyboard)
 
+    def word_demonstration(self, event):
+        user_id = event.user_id
+        keyboard = VkKeyboard()
+        keyboard.add_button(label='Следующее слово', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button(label='Пропустить слово', color=VkKeyboardColor.NEGATIVE)
+        if self.bot.users[user_id]['words counter'] == 0:
+            Time.time_start()
+        else:
+            self.score_counter(self.active_command)
+
+        self.words_counter(event)
+        if Time.time_check() == True:
+            self.create_img(event)
+            self.bot._send_image(user_id,
+                                 {self.bot.users[user_id]['dictionary'][self.bot.users[user_id]['words counter']]},
+                                 'WORD', keyboard)
+            #self.bot._send_msg(user_id,
+            #                   {self.bot.users[user_id]['dictionary'][self.bot.users[user_id]['words counter']]}, keyboard)
+        else:
+            self.finish_iteration(event)
+
+    def create_img(self, event):
+        user_id = event.user_id
+        width = 250
+        height = 250
+        message = self.bot.users[user_id]['dictionary'][self.bot.users[user_id]['words counter']]
+        font = ImageFont.truetype("arial.ttf", size=36)
+        img = Image.new('RGB', (width, height), color='black')
+        imgDraw = ImageDraw.Draw(img)
+        textWidth, textHeight = imgDraw.textsize(message, font=font)
+        xText = (width - textWidth) / 2
+        yText = (height - textHeight) / 2
+        imgDraw.text((xText, yText), message, font=font, fill=(255, 255, 255))
+        img.save('result.png')
+        img.show()
+    def zero_counter(self, event):
+        user_id = event.user_id
+        if not self.bot.users[user_id].get('words counter'):
+            self.bot.users[user_id]['words counter'] = 0
+        return self.bot.users[user_id]['words counter']
+
+    def words_counter(self, event):
+        user_id = event.user_id
+        self.bot.users[user_id]['words counter'] += 1
+        return self.bot.users[user_id]['words counter']
+
+
+
+    def score_counter(self, command_title):
+        self.bot.commands_score[command_title] += 1
+
+    def commands_count(self, event):
+        user_id = event.user_id
+        self.commands_counter += 1
+        if self.commands_counter >= self.bot.users.get(user_id)['command_amount']:
+            self.commands_counter = 0
+
+    def temp_score_counter(self, event):
+        pass
+    def finish_iteration(self, event):
+        user_id = event.user_id
+        self.bot._send_msg(user_id, "Время истекло!")
+        print(self.bot.commands_score)
+        self.commands_count(event)
+        self.game_starter(event)
+
+
+
+class Time(TheGame):
+    def __init__(self, game):
+        self.game = game
+
+    def time_start(self):
+        self.__time_start = time.perf_counter()
+
+    def time_current(self):
+        time_current = time.perf_counter()
+        return time_current
+
+    def time_check(self, event):
+        user_id = event.user_id
+        if self.time_current() - self.__time_start < self.bot.users[user_id]['explain_time']:
+            return True
+        else:
+                return False
 
 class KeyboardMixin(VkKeyboard):
     """
