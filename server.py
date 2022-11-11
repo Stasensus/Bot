@@ -113,26 +113,36 @@ class Bot(BaseBot):
     def prestart(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
-        keyboard.add_button(label='2', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='две', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
-        keyboard.add_button(label='3', color=VkKeyboardColor.PRIMARY)
+        keyboard.add_button(label='три', color=VkKeyboardColor.PRIMARY)
         keyboard.add_line()
-        keyboard.add_button(label='4', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='четыре', color=VkKeyboardColor.POSITIVE)
         self._send_msg(user_id,
-                       'Сколько команд будет играть? Напиши цифру от 2 до 4.', keyboard)
+                       'Сколько команд будет играть?', keyboard)
 
     def command_amount(self, event):
         user_id = event.user_id
-        if 1 < int(event.text) < 5:
+        if event.text.lower() == 'две':
             self.users[user_id] = {
-                'command_amount': int(event.text),
+                'command_amount': 2,
+                'command_name': [],
+            }
+            self.send_empty_keyboard(event, 'Введите название команды №1: ')
+        elif event.text.lower() == 'три':
+            self.users[user_id] = {
+                'command_amount': 3,
+                'command_name': [],
+            }
+            self.send_empty_keyboard(event, 'Введите название команды №1: ')
+        elif event.text.lower() == 'четыре':
+            self.users[user_id] = {
+                'command_amount': 4,
                 'command_name': [],
             }
             self.send_empty_keyboard(event, 'Введите название команды №1: ')
 
-        else:
-            self._send_msg(user_id,
-                           'Количество команд от 2 до 4. Напиши цифру от 2 до 4.')
+
         
     def command_name(self, event):
         user_id = event.user_id
@@ -152,7 +162,7 @@ class Bot(BaseBot):
     def victory_score(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
-        keyboard.add_button(label='25', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='5', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button(label='50', color=VkKeyboardColor.PRIMARY)
         keyboard.add_line()
@@ -162,13 +172,13 @@ class Bot(BaseBot):
 
     def set_victory_score(self, event):
         user_id = event.user_id
-        if int(event.text) in [25, 50, 100]:
+        if int(event.text) in [5, 50, 100]:
             self.users[user_id]['score'] = int(event.text)
             print(self.users)
             self.penalty(event)
         else:
             self._send_msg(user_id,
-                           "Напиши: 25, 50 или 100.")
+                           "Напиши: 5, 50 или 100.")
             self.set_victory_score(event)
 
     def penalty(self, event):
@@ -193,7 +203,7 @@ class Bot(BaseBot):
     def explain_time(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
-        keyboard.add_button(label='10', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='11', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button(label='90', color=VkKeyboardColor.PRIMARY)
         keyboard.add_line()
@@ -202,7 +212,7 @@ class Bot(BaseBot):
                        'Сколько времени даём на объяснение?', keyboard)
     def set_explain_time(self, event):
         user_id = event.user_id
-        if event.text.lower() == '10':
+        if event.text.lower() == '11':
             self.users[user_id]['explain_time'] = int(event.text)
             self.choose_dict(event)
         elif event.text.lower() == '90':
@@ -231,25 +241,25 @@ class Bot(BaseBot):
         user_id = event.user_id
         if event.text.lower() == 'простой':
             self.users = Dictionaries(event, self.users).create_easy_dict()
-            self.TheGame.game_starter(event,)
+            self.TheGame.start_circle(event)
 
         elif event.text.lower() == 'средний':
             self.users = Dictionaries(event, self.users).create_moderate_dict()
-            self.TheGame.game_starter(event,)
+            self.TheGame.start_circle(event)
 
         elif event.text.lower() == 'сложный':
             self.users = Dictionaries(event, self.users).create_hard_dict()
-            self.TheGame.game_starter(event,)
+            self.TheGame.start_circle(event)
 
         elif event.text.lower() == 'английский':
             self.users = Dictionaries(event, self.users).create_english_dict()
-            self.TheGame.game_starter(event,)
+            self.TheGame.start_circle(event)
 
         print(self.users)
 
 
 
-class Dictionaries():
+class Dictionaries:
     def __init__(self, event, users):
         self.user_id = event.user_id
         self.users = users
@@ -287,41 +297,222 @@ class Dictionaries():
 class TheGame:
     def __init__(self, bot):
         self.bot = bot
-        self.commands_counter = 0
+        self.words_counter = 0
+        self.time = Time(bot)
+        self.image = Images(bot)
 
+    def start_circle(self, event):
 
-
-    def game_starter(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
         keyboard.add_button(label='Начать объяснение!', color=VkKeyboardColor.POSITIVE)
-        self.zero_counter(event)
+        self.commands_counter = 0
         self.active_command = self.bot.users[user_id]['command_name'][self.commands_counter]
         self.bot._send_msg(user_id,
                        f"Объясняет команда {self.active_command}", keyboard)
 
-    def word_demonstration(self, event):
+    def start_explanation(self, event):
+        self.temporary_score_counter = 0
+        self.time.time_start()
+        self.temp_words_list = []
         user_id = event.user_id
         keyboard = VkKeyboard()
         keyboard.add_button(label='Следующее слово', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button(label='Пропустить слово', color=VkKeyboardColor.NEGATIVE)
-        if self.bot.users[user_id]['words counter'] == 0:
-            Time.time_start()
-        else:
-            self.score_counter(self.active_command)
+        self.bot._send_msg(user_id,
+                           {self.bot.users[user_id]['dictionary'][self.words_counter]}, keyboard)
 
-        self.words_counter(event)
-        if Time.time_check() == True:
-            self.create_img(event)
-            self.bot._send_image(user_id,
-                                 {self.bot.users[user_id]['dictionary'][self.bot.users[user_id]['words counter']]},
-                                 'WORD', keyboard)
-            #self.bot._send_msg(user_id,
-            #                   {self.bot.users[user_id]['dictionary'][self.bot.users[user_id]['words counter']]}, keyboard)
-        else:
-            self.finish_iteration(event)
+    def demonstrate_word(self, event):
+        """
+        Демонстрация слов (def demonstrate_word)
+Вывести слово из списка по индексу words_counter
+При нажатии «следующее слово»:
+Прибавить единицу к временному счетчику очков (temporary_score_counter)
+Проверить, не истекло ли время вызовом функции time_check (либо последовательным вызовом функции time_current time_check, либо вызов текущего времени запихнуть в time_check (лучше так)
+Если время истекло (False), вывести «Время истекло» и вызвать функцию (def finish explanation)
+Если время не истекло (True) вывести функцией саму себя
+“””
+Каждое показанное слово, после которого нажато «следующее слово» нужно заносить в отдельный временный список для демонстрации в конце хода. Temp_words_list = []
+“””
+При нажатии «пропустить слово»:
+Если ранее было выбрано penalty: True - Отнять единицу от временного счетчика очков (если он уже больше нуля, иначе ничего не делать). Если penalty:False, очки не отнимаем.
+Проверить, не истекло ли время вызовом функции time_check (либо последовательным вызовом функции time_current time_check, либо вызов текущего времени запихнуть в time_check (лучше так)
+Если время истекло (False), вывести «Время истекло» и вызвать функцию (def finish explanation)
+Если время не истекло (True) вывести функцией саму себя
 
+        :param event:
+        :return:
+        """
+        user_id = event.user_id
+        keyboard = VkKeyboard()
+        keyboard.add_button(label='Следующее слово', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button(label='Пропустить слово', color=VkKeyboardColor.NEGATIVE)
+        #    self.score_counter(self.active_command)
+        if event.text.lower() == 'следующее слово':
+            self.temporary_score_counter += 1
+            self.temp_words_list.append(self.bot.users[user_id]['dictionary'][self.words_counter])
+            print(self.temp_words_list)
+
+        if event.text.lower() == 'пропустить слово':
+            if self.bot.users[user_id]['penalty'] == True:
+                self.temporary_score_counter -= 1
+                if self.temporary_score_counter < 0:
+                    self.temporary_score_counter = 0
+
+        self.count_words(event)
+
+        if self.time.time_check(event) == True:
+            #self.create_img(event)
+            #self.bot._send_image(user_id,
+            #                     {self.bot.users[user_id]['dictionary'][self.bot.users[user_id]['words counter']]},
+            #                     'WORD', keyboard)
+            self.bot._send_msg(user_id,
+                               {self.bot.users[user_id]['dictionary'][self.words_counter]}, keyboard)
+        else:
+            self.bot._send_msg(user_id,
+                               'Время истекло!',
+                               keyboard)
+            self.finish_explanation(event)
+
+
+    def finish_explanation(self, event):
+        """
+        Финиш хода (def finish explanation):
+Вывести на экран слова, после которых было нажато «следующее слово» (temp_words_list[]) и спросить, сколько слов команда объяснила правильно (неправильно?)
+Попросить подтвердить правильность данного количества засчитанных слов. (как?!, У нас идет пересечение с командами 2, 3, 4. Например, можно переписать кнопки количества команд на «одна» «две» «три» «четыре». Тогда вопрос «сколько слов команда объяснила неправильно. Принять введённый ответ текстом и отнять его из temporary_score_counter, при этом он не должен быть меньше нуля. Например, проверить, если в итоге значение стало меньше нуля, умножить его на ноль)
+Положить значение из временного счетчика очков (temporary_score_counter) в список(словарь) очков каждой команды.
+Показать значение из списка очков каждой команды (как?!)
+Проверить, что счётчик команд по порядку (commands_counter) меньше количества команд. Если меньше, вызвать старт хода (def start_explanation) следующей команды (commands_counter += 1)
+Если счётчик команд по порядку равен количеству команд, значит, круг закончился. Проверить, не достигла ли одна из команд победных очков (их очки >= victory_score).
+Если достигла, вывести def congratulate. Если не достигла, вызвать старт следующего круга (def start_circle)
+
+        :param event:
+        :return:
+        """
+        user_id = event.user_id
+        keyboard = VkKeyboard()
+        self.bot.send_empty_keyboard(event,
+                                     'Были объяснены слова:')
+        self.bot.send_empty_keyboard(event, '\n'.join(self.temp_words_list))
+        self.bot.send_empty_keyboard(event,
+                           'Сколько слов объяснено неправильно? Напишите цифру. Если все правильно, введите "0"')
+
+
+
+    def finish_explanation_2(self, event):
+        user_id = event.user_id
+        keyboard = VkKeyboard()
+        self.temporary_score_counter -= int(event.text)
+        self.finish_explanation_3(event)
+
+    def finish_explanation_3(self, event):
+        user_id = event.user_id
+        keyboard = VkKeyboard()
+        print(self.bot.commands_score)
+        if self.temporary_score_counter < 0:
+            self.temporary_score_counter = 0
+
+        self.bot.commands_score[self.active_command] += self.temporary_score_counter
+        self.bot.send_empty_keyboard(event,
+                                     f'Ваша команда набрала {self.temporary_score_counter} очков')
+        self.finish_explanation_4(event)
+    def finish_explanation_4(self, event):
+        user_id = event.user_id
+        keyboard = VkKeyboard()
+        keyboard.add_button(label='Начать объяснение!', color=VkKeyboardColor.POSITIVE)
+        if self.commands_counter + 1 < self.bot.users.get(user_id)['command_amount']:
+            self.commands_counter += 1
+            self.active_command = self.bot.users[user_id]['command_name'][self.commands_counter]
+            self.bot._send_msg(user_id,
+                               f"Объясняет команда {self.active_command}", keyboard)
+
+        else:
+            self.finish_circle(event)
+
+    def finish_circle(self, event):
+        user_id = event.user_id
+        keyboard = VkKeyboard()
+        for i in self.bot.commands_score:
+            self.bot.send_empty_keyboard(event,
+                           f'Команда {i} набрала {self.bot.commands_score[i]} очков')
+        for i in self.bot.users[user_id]['command_name']:
+            if self.bot.commands_score[i] >= self.bot.users[user_id]['score']:
+                self.congratulate(event)
+                break
+        else:
+            self.commands_counter = 0
+            self.start_circle(event)
+
+
+
+    def congratulate(self, event):
+        user_id = event.user_id
+        keyboard = VkKeyboard()
+        keyboard.add_button(label='Сыграть ещё раз', color=VkKeyboardColor.POSITIVE)
+        self.bot.send_empty_keyboard(event,
+                                     'Игра окончена!')
+        for i in self.bot.commands_score:
+            if self.bot.commands_score[i] == max(self.bot.commands_score.values()):
+                self.bot._send_msg(user_id,
+                                     f'Победила команда {i}', keyboard)
+
+
+    def zero_counter(self, event):
+        user_id = event.user_id
+        if not self.bot.users[user_id].get('words counter'):
+            self.bot.users[user_id]['words counter'] = 0
+        return self.bot.users[user_id]['words counter']
+
+    def count_words(self, event):
+        user_id = event.user_id
+        self.words_counter += 1
+        return self.words_counter
+
+    def score_counter(self, command_title):
+        self.bot.commands_score[command_title] += 1
+
+    def commands_count(self, event):
+        user_id = event.user_id
+        self.commands_counter += 1
+        if self.commands_counter >= self.bot.users.get(user_id)['command_amount']:
+            self.commands_counter = 0
+
+    def set_temp_counter_2zero(self):
+        self.__temp_counter = 0
+
+    def temp_score_counter(self):
+        self.__temp_counter += 1
+
+    # def finish_explaination(self, event):
+    #     user_id = event.user_id
+    #     self.bot._send_msg(user_id, "Время истекло!")
+    #     print(self.bot.commands_score)
+    #     self.commands_count(event)
+    #     self.game_starter(event)
+
+
+class Time:
+
+    def __init__(self, bot):
+        self.bot = bot
+    def time_start(self):
+        self.__time_start = time.perf_counter()
+
+    def time_check(self, event):
+        user_id = event.user_id
+        self.time_current = time.perf_counter()
+        if self.time_current - self.__time_start < self.bot.users[user_id]['explain_time']:
+            return True
+        else:
+            return False
+class Counters:
+    pass
+
+class Images:
+    def __init__(self, bot):
+        self.bot = bot
     def create_img(self, event):
         user_id = event.user_id
         width = 250
@@ -336,56 +527,7 @@ class TheGame:
         imgDraw.text((xText, yText), message, font=font, fill=(255, 255, 255))
         img.save('result.png')
         img.show()
-    def zero_counter(self, event):
-        user_id = event.user_id
-        if not self.bot.users[user_id].get('words counter'):
-            self.bot.users[user_id]['words counter'] = 0
-        return self.bot.users[user_id]['words counter']
 
-    def words_counter(self, event):
-        user_id = event.user_id
-        self.bot.users[user_id]['words counter'] += 1
-        return self.bot.users[user_id]['words counter']
-
-
-
-    def score_counter(self, command_title):
-        self.bot.commands_score[command_title] += 1
-
-    def commands_count(self, event):
-        user_id = event.user_id
-        self.commands_counter += 1
-        if self.commands_counter >= self.bot.users.get(user_id)['command_amount']:
-            self.commands_counter = 0
-
-    def temp_score_counter(self, event):
-        pass
-    def finish_iteration(self, event):
-        user_id = event.user_id
-        self.bot._send_msg(user_id, "Время истекло!")
-        print(self.bot.commands_score)
-        self.commands_count(event)
-        self.game_starter(event)
-
-
-
-class Time(TheGame):
-    def __init__(self, game):
-        self.game = game
-
-    def time_start(self):
-        self.__time_start = time.perf_counter()
-
-    def time_current(self):
-        time_current = time.perf_counter()
-        return time_current
-
-    def time_check(self, event):
-        user_id = event.user_id
-        if self.time_current() - self.__time_start < self.bot.users[user_id]['explain_time']:
-            return True
-        else:
-                return False
 
 class KeyboardMixin(VkKeyboard):
     """
