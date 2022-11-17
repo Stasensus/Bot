@@ -576,7 +576,7 @@ class Time:
             return True
         else:
             return False
-class Counters:pass
+class Counters:
     pass
 
 class Images:
