@@ -5,12 +5,12 @@ if __name__ == '__main__':
     server = Bot(TOKEN)
     COMMANDS = {
         'начать': server.greeting,
-        'начать игру': server.prestart,
-        "правила": server.rules,
-        'игра': server.prestart,
-        'две': server.command_amount,
-        'три': server.command_amount,
-        'четыре': server.command_amount,
+        'начать игру': server.get_command_amount,
+        'правила': server.rules,
+        'две': server.set_command_amount,
+        'три': server.set_command_amount,
+        'четыре': server.set_command_amount,
+        'пять': server.set_command_amount,
         '5': server.set_victory_score,
         '50': server.set_victory_score,
         '100': server.set_victory_score,

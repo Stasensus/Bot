@@ -2,23 +2,38 @@ import random
 import time
 
 import vk_api
-from vk_api.longpoll import VkLongPoll, VkEventType
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+from vk_api.longpoll import VkLongPoll, VkEventType #Импортируем модуль для связи с пользователями (длинные запросы)
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor #Импортируем модуль для создания клавиатуры
 
-from PIL import Image, ImageDraw, ImageFont
+# from PIL import Image, ImageDraw, ImageFont Пока изображения не используются
 
+#Прописываем пути ко всем используемым файлам:
 FILE1 = r'C:\Users\USER\PycharmProjects\Bot\easy.txt'
 FILE2 = r'C:\Users\USER\PycharmProjects\Bot\moderate.txt'
 FILE3 = r'C:\Users\USER\PycharmProjects\Bot\hard.txt'
 FILE4 = r'C:\Users\USER\PycharmProjects\Bot\english.txt'
 WORD = r'C:\Users\USER\PycharmProjects\Bot\result.png'
+
 class BaseBot:
+    """
+    Устанавливаем все базовые параметры, связанные с VK.
+    """
     def __init__(self, token: str):
+        """
+        Инициализируем базовые функции для VK API, а также создаем объект класса KeyboardMixin (описан в конце кода)
+        :param token: Передаём токен из файла start.py
+        """
         self._vk = vk_api.VkApi(token=token)
-        self.__long_poll = VkLongPoll(self._vk)
-        self.keyboard = KeyboardMixin()
+        self.__long_poll = VkLongPoll(self._vk) #Создаём объект класса VkLongPoll?
+        self.keyboard = KeyboardMixin() #Используем или нет? Есть ощущение, что не используем.
 
     def start(self, commands):
+        """
+        Данный метод запускается в конце файла start.py. Выводит в консоль сообщение о корректной работе бота. Когда в
+        диалоговом окне бота появится любое сообщение боту, запустит следующий метод _command_starter
+        :param commands: Передаются из файла start.py, описаны в словаре COMMANDS
+        :return:
+        """
         self.__commands = commands
         print('Игровой бот запущен. Чтобы начать, напишите "Начать".')
         for event in self.__long_poll.listen():
@@ -29,13 +44,26 @@ class BaseBot:
                     self._command_starter(event)
 
     def _command_starter(self, event):
+        """
+        Создаёт переменную msg из текста переданного в метод eventа
+        :param event:
+        :return:
+        """
         msg = event.text
         if self.__commands.get(msg.lower()):
             self.__commands[msg.lower()](event)
         else:
-            self.command_name(event)
+            self.command_name(event) #ссылается на пустой метод
 
     def _send_msg(self, id: int, message: str, keyboard: VkKeyboard = None):
+        """
+        Создаёт метод для отправки сообщений. Если параметр keyboard не упоминается, выведет сообщение без клавиатуры.
+        Если в конце написать keyboard, появится клавиатуры (при помощи метода get_keyboard()
+        :param id: id юзера ВКонтакте
+        :param message: текст сообщения
+        :param keyboard: наличие или отсутствие клавиатуры
+        :return:
+        """
         if not keyboard:
             data = {
                 'user_id': id,
@@ -54,6 +82,14 @@ class BaseBot:
             self._vk.method('messages.send', data)
 
     def _send_image(self, id: int, message: str, attachment, keyboard: VkKeyboard = None):
+        """
+        Может отправлять картинку в виде вложения (attachment), по факту не используется в данный момент.
+        :param id:
+        :param message:
+        :param attachment:
+        :param keyboard:
+        :return:
+        """
         if not keyboard:
             data = {
                 'user_id': id,
@@ -76,6 +112,12 @@ class BaseBot:
 
 
     def send_empty_keyboard(self, event, message_txt):
+        """
+        Отправляет сообщение без клавиатуры при помощи метода get_empty_keyboard
+        :param event:
+        :param message_txt:
+        :return:
+        """
         keyboard = VkKeyboard()
         keyboard.add_button(label='Начать игру', color=VkKeyboardColor.POSITIVE)
         self._vk.method("messages.send", {"user_id": event.user_id,
@@ -84,16 +126,27 @@ class BaseBot:
                                     "keyboard": keyboard.get_empty_keyboard(),
                                     })
 
-    def command_name(self, event):
-        pass
-
 class Bot(BaseBot):
+    """
+    Класс Бот используется для предварительных настроек игры. В классе создается словарь users для учёта всего
+    необходимого и словарь commands_score для учета очков команд.
+    """
     users = {}
     commands_score = {}
     def __init__(self, *args, **kwargs):
+        """
+        Связывает данный класс с основным классом игры - TheGame
+        :param args:
+        :param kwargs:
+        """
         self.TheGame = TheGame(self)
         super().__init__(*args, **kwargs)
     def greeting(self, event):
+        """
+        Выводится по команде "начать" из стартового файла (при открытии пользователем диалога с ботом)
+        :param event:
+        :return:
+        """
         user_id = event.user_id
         keyboard = VkKeyboard()
         keyboard.add_button(label='Начать игру', color=VkKeyboardColor.POSITIVE)
@@ -104,13 +157,21 @@ class Bot(BaseBot):
     
 
     def rules(self, event):
+        """
+        Выводится по команде "Правила" из стартового файла.
+        :param event:
+        :return:
+        """
         user_id = event.user_id
         keyboard = VkKeyboard()
         keyboard.add_button(label='Начать игру', color=VkKeyboardColor.POSITIVE)
         self._send_msg(user_id,
-                       'Правила игры таковы:... Если ты готов играть, напиши: "Игра".', keyboard)
+                       'Правила игры: Каждая команда состоит из двух человек (возможно больше по желанию). Один человек'
+                       'объясняет другому из своей команды слова, появляющиеся на экране. Запрещено использовать одно-'
+                       'коренные слова, произносить отдельно любую букву слова, указывать на какие-либо предметы.'
+                       'Если ты готов играть, жми "Начать игру".', keyboard)
         
-    def prestart(self, event):
+    def get_command_amount(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
         keyboard.add_button(label='две', color=VkKeyboardColor.POSITIVE)
@@ -118,10 +179,12 @@ class Bot(BaseBot):
         keyboard.add_button(label='три', color=VkKeyboardColor.PRIMARY)
         keyboard.add_line()
         keyboard.add_button(label='четыре', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button(label='пять', color=VkKeyboardColor.PRIMARY)
         self._send_msg(user_id,
                        'Сколько команд будет играть?', keyboard)
 
-    def command_amount(self, event):
+    def set_command_amount(self, event):
         user_id = event.user_id
         if event.text.lower() == 'две':
             self.users[user_id] = {
@@ -138,6 +201,12 @@ class Bot(BaseBot):
         elif event.text.lower() == 'четыре':
             self.users[user_id] = {
                 'command_amount': 4,
+                'command_name': [],
+            }
+            self.send_empty_keyboard(event, 'Введите название команды №1: ')
+        elif event.text.lower() == 'пять':
+            self.users[user_id] = {
+                'command_amount': 5,
                 'command_name': [],
             }
             self.send_empty_keyboard(event, 'Введите название команды №1: ')
@@ -507,7 +576,7 @@ class Time:
             return True
         else:
             return False
-class Counters:
+class Counters:pass
     pass
 
 class Images:
