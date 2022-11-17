@@ -1,7 +1,7 @@
 from server import Bot
 
 if __name__ == '__main__':
-    TOKEN = 'vk1.a.stasnxwYoT0jJ_yZA2EWa_JO5K_On6IkShsY71FkxuenlLNtqNime-lYvXs7gMleTIBKMdS31fj1tFC7KdT01_8WS7h8kHYDkBazzbcUtOTu52kI3jbPwsV5BmE7j6mF3a1fwc_ehAelhJVrgx1VcFxqoc_jbg1ZTgxlCfbU-dIUYqIzUj4pfAposuRnfq-brSQI7zrUVdty4R9JNXSE_MgTHg'
+    TOKEN = 'vk1.a.nxwYoT0jJ_yZA2EWa_JO5K_On6IkShsY71FkxuenlLNtqNime-lYvXs7gMleTIBKMdS31fj1tFC7KdT01_8WS7h8kHYDkBazzbcUtOTu52kI3jbPwsV5BmE7j6mF3a1fwc_ehAelhJVrgx1VcFxqoc_jbg1ZTgxlCfbU-dIUYqIzUj4pfAposuRnfq-brSQI7zrUVdty4R9JNXSE_MgTHg'
     server = Bot(TOKEN)
     COMMANDS = {
         'начать': server.greeting,
