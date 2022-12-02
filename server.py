@@ -8,11 +8,11 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor #Импортируем 
 # from PIL import Image, ImageDraw, ImageFont Пока изображения не используются
 
 #Прописываем пути ко всем используемым файлам:
-FILE1 = r'C:\Users\USER\PycharmProjects\Bot\easy.txt'
-FILE2 = r'C:\Users\USER\PycharmProjects\Bot\moderate.txt'
-FILE3 = r'C:\Users\USER\PycharmProjects\Bot\hard.txt'
-FILE4 = r'C:\Users\USER\PycharmProjects\Bot\english.txt'
-WORD = r'C:\Users\USER\PycharmProjects\Bot\result.png'
+FILE1 = r'easy.txt'
+FILE2 = r'moderate.txt'
+FILE3 = r'hard.txt'
+FILE4 = r'english.txt'
+WORD = r'result.png'
 
 class BaseBot:
     """
@@ -172,6 +172,11 @@ class Bot(BaseBot):
                        'Если ты готов играть, жми "Начать игру".', keyboard)
         
     def get_command_amount(self, event):
+        """
+
+        :param event:
+        :return:
+        """
         user_id = event.user_id
         keyboard = VkKeyboard()
         keyboard.add_button(label='две', color=VkKeyboardColor.POSITIVE)
@@ -576,7 +581,7 @@ class Time:
             return True
         else:
             return False
-class Counters:pass
+class Counters:
     pass
 
 class Images:
