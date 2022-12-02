@@ -343,7 +343,6 @@ class Dictionaries:
             easy = [line.rstrip('\n') for line in easy]
             self.users[self.user_id]['dictionary'] = easy
             random.shuffle(self.users[self.user_id]['dictionary'])
-
             return self.users
 
     def create_moderate_dict(self):
@@ -351,6 +350,7 @@ class Dictionaries:
             moderate = f.readlines()
             moderate = [line.rstrip('\n') for line in moderate]
             self.users[self.user_id]['dictionary'] = moderate
+            random.shuffle(self.users[self.user_id]['dictionary'])
             return self.users
 
     def create_hard_dict(self):
@@ -358,6 +358,7 @@ class Dictionaries:
             hard = f.readlines()
             hard = [line.rstrip('\n') for line in hard]
             self.users[self.user_id]['dictionary'] = hard
+            random.shuffle(self.users[self.user_id]['dictionary'])
             return self.users
 
     def create_english_dict(self):
@@ -365,6 +366,7 @@ class Dictionaries:
             english = f.readlines()
             english = [line.rstrip('\n') for line in english]
             self.users[self.user_id]['dictionary'] = english
+            random.shuffle(self.users[self.user_id]['dictionary'])
             return self.users
 
 
