@@ -236,7 +236,7 @@ class Bot(BaseBot):
     def victory_score(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
-        keyboard.add_button(label='5', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='25', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button(label='50', color=VkKeyboardColor.PRIMARY)
         keyboard.add_line()
@@ -246,13 +246,13 @@ class Bot(BaseBot):
 
     def set_victory_score(self, event):
         user_id = event.user_id
-        if int(event.text) in [5, 50, 100]:
+        if int(event.text) in [25, 50, 100]:
             self.users[user_id]['score'] = int(event.text)
             print(self.users)
             self.penalty(event)
         else:
             self._send_msg(user_id,
-                           "Напиши: 5, 50 или 100.")
+                           "Напиши: 25, 50 или 100.")
             self.set_victory_score(event)
 
     def penalty(self, event):
@@ -277,7 +277,7 @@ class Bot(BaseBot):
     def explain_time(self, event):
         user_id = event.user_id
         keyboard = VkKeyboard()
-        keyboard.add_button(label='11', color=VkKeyboardColor.POSITIVE)
+        keyboard.add_button(label='60', color=VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button(label='90', color=VkKeyboardColor.PRIMARY)
         keyboard.add_line()
@@ -286,7 +286,7 @@ class Bot(BaseBot):
                        'Сколько времени даём на объяснение?', keyboard)
     def set_explain_time(self, event):
         user_id = event.user_id
-        if event.text.lower() == '11':
+        if event.text.lower() == '60':
             self.users[user_id]['explain_time'] = int(event.text)
             self.choose_dict(event)
         elif event.text.lower() == '90':
